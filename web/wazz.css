@@ -1,0 +1,61 @@
+/*
+    WazzApp, (c) 2018 Ralfoide.
+
+    This work is licensed under the terms of the MIT license.  
+    For a copy, see LICENSE.txt or <https://opensource.org/licenses/MIT>.
+*/
+
+body {
+    background-color: #eee; 
+}
+
+/* override stuff from bootstrap */
+.container {
+    width: 100%;
+}
+
+.wazz-header {
+    margin: auto;
+    text-align: center;
+}
+
+.wazz-signin-group {
+    margin: auto;
+}
+
+.wazz-signin-group #wazz-btn-signin {
+    max-width: 330px;
+    margin-top: 10px;
+}
+
+#wazz-alarm-info {
+    width: 20%;
+}
+
+#wazz-alarm-view {
+    width: 80%;
+}
+
+#wazz-devices-logo {
+    width: 10%;
+}
+
+.wazz-devices-td-logo img {
+    width: 64px;
+}
+
+.wazz-devices-td-info {
+    vertical-align: middle !important;
+}
+
+.modal-dialog.modal-full {
+    width: 100%;
+}
+
+.modal-full .modal-body {
+    padding: 0px;
+}
+
+.modal-full video {
+    width: 100%;
+}
