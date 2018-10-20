@@ -36,7 +36,7 @@ var wazzSV = {
 function wazzInit() {
     console.log("@@ init");
     wazzLoadLogin();
-    wazzGuid = genGUID();
+    wazzGuid = uuid.v1();
     $("#wazz-btn-signin").click(wazzSignIn);    
 }
 
@@ -73,22 +73,17 @@ function wazzSaveLogin() {
     }
 }
 
-// From https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-function genGUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-}
-
 function wazzNowMs() {
-    var datetime = new Date();
-    return datetime.getTime();
+    return moment().valueOf();
 }
 
 function wazzFormatMs(ts) {
     var d = new Date(ts);
     return d.toLocaleString();
+}
+
+function wazzTimeFromMs(ts) {
+    return moment(ts).fromNow();
 }
 
 function wazzStartOfDayMs(ts) {
@@ -332,9 +327,13 @@ function displayAlarms() {
         let video_link = entry.alarm_video_url;
         let name = wazzLookupCamName(entry.device_mac);
         let timeTs = wazzFormatMs(entry.alarm_ts);
+        var timeFromNow = wazzTimeFromMs(entry.alarm_ts);
         wazzNextTs = entry.alarm_ts;
 
-        var info = $("<span>").append(name).append($("<br>")).append( $("<span>").append(timeTs) );
+        var info = $("<span>")
+            .append(name).append($("<br>"))
+            .append( $("<span>").append(timeFromNow) ).append($("<br>"))
+            .append( $("<span>").append(timeTs) );
 
         var video = $("<video>")
             .attr("width", "75%")

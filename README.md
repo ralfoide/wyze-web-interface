@@ -46,6 +46,6 @@ Any recent version of Chrome or Firefox should work just fine.
 
 ## License
 
-MIT license. See LICENSE.txt
+MIT license. See [LICENSE.txt](https://bitbucket.org/ralfoide/wazzapp/src/HEAD/LICENSE.txt).
 
 ~~
