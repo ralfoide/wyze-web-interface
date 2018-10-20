@@ -11,10 +11,11 @@ var wazzAccessToken = "";
 var wazzRefreshToken = "";
 var wazzUserEmail = "";
 var wazzUserPasswd = "";
-var wazzSavePasswd = false;
+var wazzSavePasswd = true;
 var wazzDevices = [];
 var wazzDeviceSort = [];
 var wazzAlarms = [];
+var wazzNextTs = 0;
 var wazzGuid = "";
 var wazzBaseUrl = "https://api.wyzecam.com:8443/";
 var wazzSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
@@ -90,6 +91,11 @@ function wazzFormatMs(ts) {
     return d.toLocaleString();
 }
 
+function wazzStartOfDayMs(ts) {
+    var d = new Date(ts);
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    return d.getTime();
+}
 
 function wazzJsonRequestPromise(req, reqData) {
     return new Promise(function (resolve, reject) {
@@ -244,6 +250,7 @@ function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, num
         nums = 20;
     }
     console.log("@@ alarm list: begin= " + wazzFormatMs(begin_time_ms) + ", end=" + wazzFormatMs(end_time_ms));
+    wazzNextTs = begin_time_ms;
     return wazzJsonRequestPromise(
         "get_alarm_info_list",
         {
@@ -274,6 +281,17 @@ function wazzLookupCamName(device_mac) {
         }
     }
     return device_mac;
+}
+
+function wazzDisplayAlarmsBeforeAsync(end_time_ms) {
+    wazzGetAlarmInfoListPromise(undefined, end_time_ms - 1)
+    .then(alarmData => {
+        wazzAlarms = alarmData.alarm_info_list;
+        displayAlarms();
+    })
+    .catch(error => {
+        console.log("@@ login KO: " + error);
+    });
 }
 
 // ---
@@ -314,6 +332,7 @@ function displayAlarms() {
         let video_link = entry.alarm_video_url;
         let name = wazzLookupCamName(entry.device_mac);
         let timeTs = wazzFormatMs(entry.alarm_ts);
+        wazzNextTs = entry.alarm_ts;
 
         var info = $("<span>").append(name).append($("<br>")).append( $("<span>").append(timeTs) );
 
@@ -341,6 +360,29 @@ function displayAlarms() {
         tr.append( $("<td>").attr("class", "wazz-alarms-td-view").append(video) );
         body.append(tr);
     }
+
+    let previous_end_ts = wazzNextTs;
+    let previous_day_ts = wazzStartOfDayMs(wazzNextTs);
+    
+    var link_more = $("<a>")
+        .attr("href", "#")
+        .attr("title", "Load previous alarm videos")
+        .click(e => wazzDisplayAlarmsBeforeAsync(previous_end_ts))
+        .append("Load <b>previous</b> alarm videos");
+    var link_more_text = " (before " + wazzFormatMs(previous_end_ts) + ")";
+    var link_prev_day = $("<a>")
+        .attr("href", "#")
+        .attr("title", "Load previous alarm videos")
+        .click(e => wazzDisplayAlarmsBeforeAsync(previous_day_ts))
+        .append("Load <b>previous day</b> alarm videos");
+    var tr = $("<tr>");
+    tr.append( $("<td>").attr("class", "wazz-alarms-td-info").append("&nbsp;") );
+    tr.append( $("<td>").attr("class", "wazz-alarms-td-view")
+                        .append(link_more).append(link_more_text)
+                        .append("<br>")
+                        .append(link_prev_day));
+    body.append(tr);
+
 }
 
 function displayFullscreen(info, video_link) {
