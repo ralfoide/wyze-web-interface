@@ -2,6 +2,9 @@
 
 **WazzApp** is a little _demonstration_ web client that displays the most recent alarm videos of Wyze cameras.
 
+>This project is not affiliated nor endorsed by Wyze Labs, Inc. The Wyze name and all related logos are most likely trademarks of Wyze Labs, Inc. or its affiliates.
+
+
 ## Usage
 
 1. Clone directory or copy the content of the [`web`](https://bitbucket.org/ralfoide/wazzapp/src/HEAD/web/) folder locally.
