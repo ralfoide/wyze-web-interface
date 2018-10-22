@@ -11,15 +11,17 @@ var wazzAccessToken = "";
 var wazzRefreshToken = "";
 var wazzUserEmail = "";
 var wazzUserPasswd = "";
-var wazzSavePasswd = true;
+var wazzSavePasswd = false;
 var wazzDevices = [];
 var wazzDeviceSort = [];
 var wazzAlarms = [];
-var wazzNextTs = 0;
+var wazzEndTs = 0;
+var wazzBeginTs = 0;
 var wazzGuid = "";
-var wazzBaseUrl = "https://api.wyzecam.com:8443/";
-var wazzSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
-var wazzSV = {
+var wazzFailures = 0;
+const wazzBaseUrl = "https://api.wyzecam.com:8443/";
+const wazzSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
+const wazzSV = {
     "set_app_info" :               { path: "app/system/set_app_info",               sv: "664331bda40b47349498e57df18d1e80" },
     "login" :                      { path: "app/user/login",                        sv: "da29dd58efe4407a90aa69ced5134e0b" },
     "refresh_token" :              { path: "app/user/refresh_token",                sv: "c8ef4bf8db3142aa8896c9e86151d47e" },
@@ -93,12 +95,12 @@ function wazzStartOfDayMs(ts) {
 }
 
 function wazzJsonRequestPromise(req, reqData) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log("@@ SV request: " + req);
         var sv = wazzSV[req];
         if (sv == undefined) {
             console.log("@@ invalid SV request: " + req);
-            reject(Error("Invalid SV request " + req));
+            reject({msg: "Invalid SV request " + req});
             return;
         }
 
@@ -125,6 +127,7 @@ function wazzJsonRequestPromise(req, reqData) {
             1002 = http method is error
             1003 = content type is error
             1006 = etc.
+            2001 = access token error
         */
 
         if (reqData != undefined) {
@@ -139,18 +142,20 @@ function wazzJsonRequestPromise(req, reqData) {
             data: JSON.stringify(jsonData),
             dataType: "json",
             contentType: "application/json",
-            success: function(result, status, xhr) {
+            success: (result, status, xhr) => {
                 console.log("@@ req: " + req + ", success: " + result.code + ", " + result.msg);
                 // alert("result: " + result.code + " " + result.msg + " " + JSON.stringify(result.data));
                 if (result.code >= 1000) {
-                    reject(Error("Code " + result.code + ": " + result.msg));
+                    wazzFailures += 1;
+                    reject(result);
                 } else {
+                    wazzFailures = 0;
                     resolve(result.data);
                 }
             },
-            error: function(xhr, status, error) {
+            error: (xhr, status, error) => {
                 console.log("@@ req: " + req + ", error: " + status.code + ", " + status.msg + ", " + error);
-                reject(Error("Code " + status.code + ": " + status.msg));
+                reject(status);
             }
         }); // end ajax
     }); // end promise
@@ -174,24 +179,11 @@ function wazzSignIn() {
 
     wazzSetAppInfoPromise()
     .then(data => wazzUserLoginPromise())
-    .then(loginData => {
-        wazzAccessToken = loginData.access_token;
-        wazzRefreshToken = loginData.refresh_token;
-    })
     .then(data => wazzUseAppPromise())
     .then(data => wazzGetDeviceListPromise())
-    .then(deviceData => {
-        wazzDevices = deviceData.device_info_list;
-        wazzDeviceSort = deviceData.device_sort_list;
-        displayDevices();
-    })
     .then(data => wazzGetAlarmInfoListPromise())
-    .then(alarmData => {
-        wazzAlarms = alarmData.alarm_info_list;
-        displayAlarms();
-    })
     .catch(error => {
-        console.log("@@ login KO: " + error);
+        console.log("@@ login KO: " + JSON.stringify(error));
     });
 }
 
@@ -220,7 +212,23 @@ function wazzUserLoginPromise() {
             "password": wazzUserPasswd,
             "user_name": wazzUserEmail,        
         }
-    );
+    ).then(loginData => {
+        wazzAccessToken = loginData.access_token;
+        wazzRefreshToken = loginData.refresh_token;
+    });
+}
+
+function wazzRefreshTokenPromise() {
+    return wazzJsonRequestPromise(
+        "refresh_token",
+        {
+            "access_token": wazzAccessToken,
+            "refresh_token": wazzRefreshToken,
+        }
+    ).then(data => {
+        wazzAccessToken = data.access_token;
+        wazzRefreshToken = data.refresh_token;
+    });
 }
 
 function wazzUseAppPromise() {
@@ -228,14 +236,19 @@ function wazzUseAppPromise() {
 }
 
 function wazzGetDeviceListPromise() {
-    return wazzJsonRequestPromise("get_device_list");
+    return wazzJsonRequestPromise("get_device_list")
+    .then(deviceData => {
+        wazzDevices = deviceData.device_info_list;
+        wazzDeviceSort = deviceData.device_sort_list;
+        displayDevices();
+    });
 }
 
 function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, nums) {
-    if (end_time_ms == undefined) {
+    if (end_time_ms == undefined || end_time_ms == 0) {
         end_time_ms = wazzNowMs();
     }
-    if (begin_time_ms == undefined) {
+    if (begin_time_ms == undefined || begin_time_ms >= end_time_ms) {
         begin_time_ms = end_time_ms - 24*3600*1000;
     }
     if (device_mac == undefined) {
@@ -245,7 +258,8 @@ function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, num
         nums = 20;
     }
     console.log("@@ alarm list: begin= " + wazzFormatMs(begin_time_ms) + ", end=" + wazzFormatMs(end_time_ms));
-    wazzNextTs = begin_time_ms;
+    wazzEndTs = end_time_ms;
+    wazzBeginTs = begin_time_ms;
     return wazzJsonRequestPromise(
         "get_alarm_info_list",
         {
@@ -255,7 +269,10 @@ function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, num
             "nums": nums,
             "order_by": 2,        
         }
-    );
+    ).then(alarmData => {
+        wazzAlarms = alarmData.alarm_info_list;
+        displayAlarms();
+    });
 }
 
 function wazzUploadDeviceConnectInfoPromise(connect_result, connect_ts, device_mac) {
@@ -278,14 +295,15 @@ function wazzLookupCamName(device_mac) {
     return device_mac;
 }
 
-function wazzDisplayAlarmsBeforeAsync(end_time_ms) {
-    wazzGetAlarmInfoListPromise(undefined, end_time_ms - 1)
-    .then(alarmData => {
-        wazzAlarms = alarmData.alarm_info_list;
-        displayAlarms();
-    })
+function wazzUpdateAlarmsAsync(end_time_ms) {
+    return wazzGetAlarmInfoListPromise(undefined, end_time_ms)
     .catch(error => {
-        console.log("@@ login KO: " + error);
+        console.log("@@ login KO: " + JSON.stringify(error));
+        if (error.code == 2001 && wazzFailures < 5) {
+            return wazzRefreshTokenPromise()
+            .then(data => wazzUpdateAlarmsAsync(end_time_ms))
+            .catch(error => console.log("@@ login KO: " + JSON.stringify(error)));
+        }
     });
 }
 
@@ -328,7 +346,7 @@ function displayAlarms() {
         let name = wazzLookupCamName(entry.device_mac);
         let timeTs = wazzFormatMs(entry.alarm_ts);
         var timeFromNow = wazzTimeFromMs(entry.alarm_ts);
-        wazzNextTs = entry.alarm_ts;
+        wazzBeginTs = entry.alarm_ts;
 
         var info = $("<span>")
             .append(name).append($("<br>"))
@@ -360,28 +378,34 @@ function displayAlarms() {
         body.append(tr);
     }
 
-    let previous_end_ts = wazzNextTs;
-    let previous_day_ts = wazzStartOfDayMs(wazzNextTs);
+    let previous_end_ts = wazzBeginTs;
+    let previous_day_ts = wazzStartOfDayMs(wazzBeginTs);
     
     var link_more = $("<a>")
         .attr("href", "#")
-        .attr("title", "Load previous alarm videos")
-        .click(e => wazzDisplayAlarmsBeforeAsync(previous_end_ts))
+        .attr("title", "Load <b>previous</b> alarm videos")
+        .click(e => wazzUpdateAlarmsAsync(previous_end_ts - 1))
         .append("Load <b>previous</b> alarm videos");
     var link_more_text = " (before " + wazzFormatMs(previous_end_ts) + ")";
     var link_prev_day = $("<a>")
         .attr("href", "#")
         .attr("title", "Load previous alarm videos")
-        .click(e => wazzDisplayAlarmsBeforeAsync(previous_day_ts))
+        .click(e => wazzUpdateAlarmsAsync(previous_day_ts - 1))
         .append("Load <b>previous day</b> alarm videos");
+    var link_refresh = $("<a>")
+        .attr("href", "#")
+        .attr("title", "Load latest alarm videos")
+        .click(e => wazzUpdateAlarmsAsync(0))
+        .append("Load <b>latest</b> alarm videos");
     var tr = $("<tr>");
     tr.append( $("<td>").attr("class", "wazz-alarms-td-info").append("&nbsp;") );
     tr.append( $("<td>").attr("class", "wazz-alarms-td-view")
                         .append(link_more).append(link_more_text)
                         .append("<br>")
-                        .append(link_prev_day));
+                        .append(link_prev_day)
+                        .append("<br>")
+                        .append(link_refresh));
     body.append(tr);
-
 }
 
 function displayFullscreen(info, video_link) {
@@ -396,7 +420,7 @@ function displayFullscreen(info, video_link) {
 
 function stopAllVideos() {
     // stop *all* video players (not just this one)
-    $("video").each(function () { this.pause() });
+    $("video").each((index, video) => video.pause());
 }
 
 // ---

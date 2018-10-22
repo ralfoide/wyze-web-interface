@@ -23,7 +23,6 @@ _The Wyze API is not official_. It can change at any moment, for example due to 
 
 The following features are not supported or not implemented:
 
-* Authentication token expiration and self-refresh.
 * Account management: user registration, change name, change password.
 * Device management: registering, unregistering, sharing camera or other device.
 * Automation and Actions.
