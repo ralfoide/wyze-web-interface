@@ -1,5 +1,6 @@
 /*
     WazzApp, (c) 2018 Ralfoide.
+    A demonstration Wyze web client interface.
 
     This work is licensed under the terms of the MIT license.  
     For a copy, see LICENSE.txt or <https://opensource.org/licenses/MIT>.

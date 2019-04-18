@@ -1,6 +1,8 @@
 # WazzApp
 
-**WazzApp** is a little _demonstration_ web client that displays the most recent alarm videos of Wyze cameras.
+**WazzApp** is an unofficial **Wyze web client interface**.
+
+This is a little _demonstration_ web client that displays the most recent alarm videos of Wyze cameras.
 
 >This project is not affiliated nor endorsed by Wyze Labs, Inc. The Wyze name and all related logos are most likely trademarks of Wyze Labs, Inc. or its affiliates.
 
@@ -21,7 +23,7 @@
 
 _The Wyze API is not official_. It can change at any moment, for example due to Wyze servers updates or hardware/firmware updates.
 
-The following features are not supported or not implemented:
+The following features are not supported nor implemented:
 
 * Account management: user registration, change name, change password.
 * Device management: registering, unregistering, sharing camera or other device.
