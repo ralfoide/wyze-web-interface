@@ -30,6 +30,11 @@ body {
     margin-top: 10px;
 }
 
+.wyzeweb-btn-action {
+    max-width: 330px;
+    margin-left: 16px;
+}
+
 #wyzeweb-alarm-info {
     width: 20%;
 }

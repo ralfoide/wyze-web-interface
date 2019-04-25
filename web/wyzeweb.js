@@ -18,8 +18,10 @@ var wyzewebDeviceSort = [];
 var wyzewebAlarms = [];
 var wyzewebEndTs = 0;
 var wyzewebBeginTs = 0;
+var wyzewebLastViewTs = []
 var wyzewebGuid = "";
 var wyzewebFailures = 0;
+const wyzewebOneDayMs = 24*3600*1000;
 const wyzewebBaseUrl = "https://api.wyzecam.com:8443/";
 const wyzewebSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
 const wyzewebSV = {
@@ -381,32 +383,93 @@ function displayAlarms() {
 
     let previous_end_ts = wyzewebBeginTs;
     let previous_day_ts = wyzewebStartOfDayMs(wyzewebBeginTs);
-    
-    var link_more = $("<a>")
-        .attr("href", "#")
-        .attr("title", "Load <b>previous</b> alarm videos")
-        .click(e => wyzewebUpdateAlarmsAsync(previous_end_ts - 1))
-        .append("Load <b>previous</b> alarm videos");
-    var link_more_text = " (before " + wyzewebFormatMs(previous_end_ts) + ")";
-    var link_prev_day = $("<a>")
-        .attr("href", "#")
-        .attr("title", "Load previous alarm videos")
-        .click(e => wyzewebUpdateAlarmsAsync(previous_day_ts - 1))
-        .append("Load <b>previous day</b> alarm videos");
-    var link_refresh = $("<a>")
-        .attr("href", "#")
-        .attr("title", "Load latest alarm videos")
-        .click(e => wyzewebUpdateAlarmsAsync(0))
-        .append("Load <b>latest</b> alarm videos");
+    let next_day_ts = wyzewebStartOfDayMs(wyzewebBeginTs + wyzewebOneDayMs);
+
     var tr = $("<tr>");
+    var btn_more = $("<button>")
+        .attr("class", "btn btn-success wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View 20 previous alarm videos")
+        .click(e => {
+            $("html, body").animate(
+                { scrollTop: $("#wyzeweb-alarm-actions").offset().top },
+                "slow",
+                "swing",
+                /*completed*/ () => wyzewebUpdateAlarmsAsync(previous_end_ts - 1) );
+        })
+        .append("&lt; 20 PREVIOUS alarm videos");
+    var btn_more_text = " (before " + wyzewebFormatMs(previous_end_ts) + ")";
     tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-info").append("&nbsp;") );
     tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-view")
-                        .append(link_more).append(link_more_text)
-                        .append("<br>")
-                        .append(link_prev_day)
-                        .append("<br>")
-                        .append(link_refresh));
+                        .append(btn_more)
+                        .append( $("<span>").append(btn_more_text) ) );
     body.append(tr);
+
+    var tr = $("<tr>");
+    var btn_refresh = $("<button>")
+        .attr("class", "btn btn-info wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View latest alarm videos")
+        .click(e => {
+            wyzewebUpdateAlarmsAsync(0);
+        })
+        .append("View LATEST alarm videos");
+    tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-info").append("&nbsp;") );
+    tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-view")
+                        .append(btn_refresh) );
+    body.append(tr);
+
+    var btn_prev_day = $("<button>")
+        .attr("class", "btn btn-primary wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View previous day alarm videos")
+        .click(e => {
+            wyzewebUpdateAlarmsAsync(previous_day_ts - 1);
+        })
+        .append("&lt; PREVIOUS day");
+
+    var btn_next_day = $("<button>")
+        .attr("class", "btn btn-primary wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View next day alarm videos")
+        .click(e => {
+            wyzewebUpdateAlarmsAsync(next_day_ts - 1);
+        })
+        .append("NEXT day &gt;");
+
+    var btn_prev2 = $("<button>")
+        .attr("class", "btn btn-success wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View 20 previous alarm videos")
+        .click(e => {
+            wyzewebUpdateAlarmsAsync(previous_end_ts - 1);
+        })
+        .append("&lt; 20 PREVIOUS videos");
+
+    var btn_next2 = $("<button>")
+        .attr("class", "btn btn-success wyzeweb-btn-action")
+        .attr("href", "#")
+        .attr("title", "View 20 next alarm videos")
+        .click(e => {
+            wyzewebLastViewTs.shift(); // this is the ts we just loaded
+            var ts = wyzewebLastViewTs.shift(); // this is the one before
+            if (ts != undefined) {
+                wyzewebUpdateAlarmsAsync(ts);
+            }
+        })
+        .append("20 NEXT videos &gt;");
+    if (wyzewebLastViewTs.length <= 1) {
+        btn_next2.attr("disabled", "");
+    }
+
+    var span_top = $("#wyzeweb-alarm-actions");
+    span_top
+        .empty()
+        .append(btn_refresh)
+        .append(btn_prev_day)
+        .append(btn_next_day)
+        .append(btn_prev2)
+        .append(btn_next2);
 }
 
 function displayFullscreen(info, video_link) {
