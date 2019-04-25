@@ -27,12 +27,86 @@
 
 <body>
 
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="https://bitbucket.org/ralfoide/wyze-web-interface">Wyze Web Interface</a>
+        </div>
+		<span class="navbar-text">
+		An unofficial web interface for Wyze Camera Events <br/>
+		<a href="https://bitbucket.org/ralfoide/wyze-web-interface/overview" target="_blank">Source &amp; Information</a>, MIT License
+		</span>
+    </div>
+</nav>
+
 <div class="container">
-<div class="wyzeweb-header">
-    <h3>Wyze Web Interface</h3>
-    <a href="https://bitbucket.org/ralfoide/wyzewebapp/overview">Source &amp; Information</a>, MIT License
+<div class="col-md-12">
+    <h3>Explanations</h3>
+	<div class="collapse in" id="collapseExplanations">
+	  <div class="well">
+<b>Wyze Web Interface</b> is an <u>unofficial</u> Wyze Camera web client interface. <br/>
+This little <i>proof-of-concept</i> web client displays the most recent alarm videos of Wyze cameras. <br/>
+<p style="border-left: 1px solid #CCC; padding: 10px 30px; margin: 10px;">
+<i>This project is not affiliated nor endorsed by Wyze Labs, Inc. <br/>
+The Wyze name and all related logos are most likely trademarks of Wyze Labs, Inc. or its affiliates.</i>
+</p>
+How does this works?
+<ul>
+<li>Enter your Wyze mobile app user/password below and select the blue "Sign-In" button. </li>
+<li>No server is used. Authentication is done entirely by your browser directly to the Wyze server. </li>
+<li>The list of cameras from that account is pulled, followed by the 20 most recent video alarms. </li>
+<li>Please check <a href="https://bitbucket.org/ralfoide/wyze-web-interface/overview" target="_blank">the project page</a>
+	for more details, including what this does not do.</li>
+</ul>
+	  </div>
+	</div>
+	<a class="" role="button" data-toggle="collapse" href="#collapseExplanations" aria-expanded="false" aria-controls="collapseExample">
+	  Collapse / Expand explanations
+	</a>
 </div>
-<div class="row ">
+
+<div class="col-md-12 wyzeweb-signin-group">
+    <h3>Please sign in</h3>
+	<div class="row">
+		<div class="col-md-4">
+			<span>Wyze Username / email:</span>
+			<label for="inputEmail" class="sr-only">Email address</label>
+				<input type="email" id="wyzeweb-input-email" class="form-control" placeholder="Email address" required autofocus>
+			<span>Wyze Password:</span>
+			<label for="inputPassword" class="sr-only">Password</label>
+				<input type="password" id="wyzeweb-input-passwd" class="form-control" placeholder="Password" required>
+		</div>
+		<div class="col-md-4">
+			<button class="btn btn-lg btn-primary btn-block" id="wyzeweb-btn-signin">Sign in &amp; Refresh</button>
+			<div class="checkbox">
+				<label>
+					<input type="checkbox" id="wyzeweb-remember-signin">Remember username
+				</label>
+			</div>
+			Note: Login (user/password) is same as what you use in the Wyze App on mobile.
+			Password is never saved. See explanation above for more details.
+		</div>
+	</div>
+</div>
+
+<div class="col-md-12">
+	<h3>Recent Recorded Videos Alarms</h3>
+	<span id="wyzeweb-num-alarms">No alarms loaded yet.</span>
+	<p>Alarm videos are 12-second clips, recorded every 5 minutes at most when motion is detected.</p>
+
+	<table class="table table-striped table-bordered">
+		<thead>
+		<tr>
+			<th id="wyzeweb-alarm-info">Alarm</th>
+			<th id="wyzeweb-alarm-view">View</th>
+		</tr>
+		</thead>
+		<tbody id="wyzeweb-alarms-body">
+		<!-- tr/td data -->
+		</tbody>
+	</table>
+</div>
+
 <div class="col-md-8">
     <h3>Device List</h3>
     <span id="wyzeweb-num-devices">No Wyze devices loaded yet.</span>
@@ -47,41 +121,6 @@
         <!-- tr/td data -->
         </tbody>
     </table>
-</div>
-<div class="col-md-4 wyzeweb-signin-group">
-    <h3>Please sign in</h3>
-    <span>Wyze Username / email:</span>
-    <label for="inputEmail" class="sr-only">Email address</label>
-        <input type="email" id="wyzeweb-input-email" class="form-control" placeholder="Email address" required autofocus>
-    <span>Wyze Password:</span>
-    <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="wyzeweb-input-passwd" class="form-control" placeholder="Password" required>
-    <div class="checkbox">
-        <label>
-            <input type="checkbox" id="wyzeweb-remember-signin">Remember username
-        </label>
-    </div>
-    <button class="btn btn-lg btn-primary btn-block" id="wyzeweb-btn-signin">Sign in &amp; Refresh</button>
-</div>
-</div> <!-- row cams + signin -->
-
-<div class="row ">
-    <div class="col-md-12">
-        <h3>Recent Alarms</h3>
-        <span id="wyzeweb-num-alarms">No alarms loaded yet.</span>
-
-        <table class="table table-striped table-bordered">
-            <thead>
-            <tr>
-                <th id="wyzeweb-alarm-info">Alarm</th>
-                <th id="wyzeweb-alarm-view">View</th>
-            </tr>
-            </thead>
-            <tbody id="wyzeweb-alarms-body">
-            <!-- tr/td data -->
-            </tbody>
-        </table>
-    </div>
 </div>
     
 </div> <!-- container -->

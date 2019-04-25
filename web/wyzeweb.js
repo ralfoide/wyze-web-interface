@@ -12,7 +12,7 @@ var wyzewebAccessToken = "";
 var wyzewebRefreshToken = "";
 var wyzewebUserEmail = "";
 var wyzewebUserPasswd = "";
-var wyzewebSavePasswd = false;
+var wyzewebSavePasswd = false; // do not enable. Let browsers save password if feature is wanted.
 var wyzewebDevices = [];
 var wyzewebDeviceSort = [];
 var wyzewebAlarms = [];
@@ -145,7 +145,7 @@ function wyzewebJsonRequestPromise(req, reqData) {
             contentType: "application/json",
             success: (result, status, xhr) => {
                 console.log("@@ req: " + req + ", success: " + result.code + ", " + result.msg);
-                // alert("result: " + result.code + " " + result.msg + " " + JSON.stringify(result.data));
+                // [DEBUG] alert("result: " + result.code + " " + result.msg + " " + JSON.stringify(result.data));
                 if (result.code >= 1000) {
                     wyzewebFailures += 1;
                     reject(result);

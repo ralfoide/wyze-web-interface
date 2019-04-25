@@ -8,6 +8,7 @@
 
 body {
     background-color: #eee; 
+    padding-top: 80px; /* navbar min-height is fixed by content, 50 px min. */
 }
 
 /* override stuff from bootstrap */
@@ -21,7 +22,7 @@ body {
 }
 
 .wyzeweb-signin-group {
-    margin: auto;
+    /* margin: auto; */
 }
 
 .wyzeweb-signin-group #wyzeweb-btn-signin {
