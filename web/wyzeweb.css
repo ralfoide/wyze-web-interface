@@ -1,5 +1,5 @@
 /*
-    WazzApp, (c) 2018 Ralfoide.
+    Wyze Web Interface, (c) 2018 Ralfoide.
     A demonstration Wyze web client interface.
 
     This work is licensed under the terms of the MIT license.  
@@ -15,37 +15,37 @@ body {
     width: 100%;
 }
 
-.wazz-header {
+.wyzeweb-header {
     margin: auto;
     text-align: center;
 }
 
-.wazz-signin-group {
+.wyzeweb-signin-group {
     margin: auto;
 }
 
-.wazz-signin-group #wazz-btn-signin {
+.wyzeweb-signin-group #wyzeweb-btn-signin {
     max-width: 330px;
     margin-top: 10px;
 }
 
-#wazz-alarm-info {
+#wyzeweb-alarm-info {
     width: 20%;
 }
 
-#wazz-alarm-view {
+#wyzeweb-alarm-view {
     width: 80%;
 }
 
-#wazz-devices-logo {
+#wyzeweb-devices-logo {
     width: 10%;
 }
 
-.wazz-devices-td-logo img {
+.wyzeweb-devices-td-logo img {
     width: 64px;
 }
 
-.wazz-devices-td-info {
+.wyzeweb-devices-td-info {
     vertical-align: middle !important;
 }
 

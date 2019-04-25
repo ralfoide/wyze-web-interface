@@ -1,6 +1,6 @@
-# WazzApp
+# Wyze Web Interface
 
-**WazzApp** is an unofficial **Wyze web client interface**.
+**Wyze Web Interface is an unofficial _Wyze Camera_ web client interface**.
 
 This is a little _demonstration_ web client that displays the most recent alarm videos of Wyze cameras.
 
@@ -9,8 +9,8 @@ This is a little _demonstration_ web client that displays the most recent alarm 
 
 ## Usage
 
-1. Clone directory or copy the content of the [`web`](https://bitbucket.org/ralfoide/wazzapp/src/HEAD/web/) folder locally.
-2. Use your web browser to navigate to your local copy of [`web/wazz.html`](https://bitbucket.org/ralfoide/wazzapp/src/HEAD/web/wazz.html). Using a `file://` reference works. No web server is required.
+1. Clone directory or copy the content of the [`web`](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/web/) folder locally.
+2. Use your web browser to navigate to your local copy of [`web/wyzeweb.html`](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/web/wyzeweb.html). Using a `file://` reference works. No web server is required.
 3. Enter your Wyze account login information.
 4. Using the Wyze API:
     * The cameras registered with the account are displayed,
@@ -50,6 +50,6 @@ Any recent version of Chrome or Firefox should work just fine.
 
 ## License
 
-MIT license. See [LICENSE.txt](https://bitbucket.org/ralfoide/wazzapp/src/HEAD/LICENSE.txt).
+MIT license. See [LICENSE.txt](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/LICENSE.txt).
 
 ~~

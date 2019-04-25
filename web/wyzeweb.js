@@ -1,5 +1,5 @@
 /*
-    WazzApp, (c) 2018 Ralfoide.
+    Wyze Web Interface, (c) 2018 Ralfoide.
     A demonstration Wyze web client interface.
 
     This work is licensed under the terms of the MIT license.  
@@ -8,21 +8,21 @@
 
 "use strict";
 
-var wazzAccessToken = "";
-var wazzRefreshToken = "";
-var wazzUserEmail = "";
-var wazzUserPasswd = "";
-var wazzSavePasswd = false;
-var wazzDevices = [];
-var wazzDeviceSort = [];
-var wazzAlarms = [];
-var wazzEndTs = 0;
-var wazzBeginTs = 0;
-var wazzGuid = "";
-var wazzFailures = 0;
-const wazzBaseUrl = "https://api.wyzecam.com:8443/";
-const wazzSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
-const wazzSV = {
+var wyzewebAccessToken = "";
+var wyzewebRefreshToken = "";
+var wyzewebUserEmail = "";
+var wyzewebUserPasswd = "";
+var wyzewebSavePasswd = false;
+var wyzewebDevices = [];
+var wyzewebDeviceSort = [];
+var wyzewebAlarms = [];
+var wyzewebEndTs = 0;
+var wyzewebBeginTs = 0;
+var wyzewebGuid = "";
+var wyzewebFailures = 0;
+const wyzewebBaseUrl = "https://api.wyzecam.com:8443/";
+const wyzewebSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
+const wyzewebSV = {
     "set_app_info" :               { path: "app/system/set_app_info",               sv: "664331bda40b47349498e57df18d1e80" },
     "login" :                      { path: "app/user/login",                        sv: "da29dd58efe4407a90aa69ced5134e0b" },
     "refresh_token" :              { path: "app/user/refresh_token",                sv: "c8ef4bf8db3142aa8896c9e86151d47e" },
@@ -36,86 +36,86 @@ const wazzSV = {
 };
 
 
-function wazzInit() {
+function wyzewebInit() {
     console.log("@@ init");
-    wazzLoadLogin();
-    wazzGuid = uuid.v1();
-    $("#wazz-btn-signin").click(wazzSignIn);    
+    wyzewebLoadLogin();
+    wyzewebGuid = uuid.v1();
+    $("#wyzeweb-btn-signin").click(wyzewebSignIn);    
 }
 
-function wazzLoadLogin() {
+function wyzewebLoadLogin() {
     if (typeof(Storage) != undefined) {
-        var email  = localStorage.getItem("wazz-input-email");
-        var passwd = localStorage.getItem("wazz-input-passwd");
-        var check  = localStorage.getItem("wazz-remember-signin");
+        var email  = localStorage.getItem("wyzeweb-input-email");
+        var passwd = localStorage.getItem("wyzeweb-input-passwd");
+        var check  = localStorage.getItem("wyzeweb-remember-signin");
         if (email != undefined)  {
-            $("#wazz-input-email").val(email);
+            $("#wyzeweb-input-email").val(email);
         }
-        if (passwd != undefined && wazzSavePasswd)  {
-            $("#wazz-input-passwd").val(passwd);
+        if (passwd != undefined && wyzewebSavePasswd)  {
+            $("#wyzeweb-input-passwd").val(passwd);
         }
         if (check != undefined) {
-            $("#wazz-remember-signin").prop("checked", check == "true");
+            $("#wyzeweb-remember-signin").prop("checked", check == "true");
         }
     }
 }
 
-function wazzSaveLogin() {
+function wyzewebSaveLogin() {
     if (typeof(Storage) != undefined) {
-        var email  = $("#wazz-input-email").val().trim();
-        var passwd = $("#wazz-input-passwd").val().trim();
-        var check  = $("#wazz-remember-signin").prop("checked");
+        var email  = $("#wyzeweb-input-email").val().trim();
+        var passwd = $("#wyzeweb-input-passwd").val().trim();
+        var check  = $("#wyzeweb-remember-signin").prop("checked");
         if (check) {
-            localStorage.setItem("wazz-input-email",  email);
-            if (wazzSavePasswd) localStorage.setItem("wazz-input-passwd", passwd);
+            localStorage.setItem("wyzeweb-input-email",  email);
+            if (wyzewebSavePasswd) localStorage.setItem("wyzeweb-input-passwd", passwd);
         } else {
-            localStorage.setItem("wazz-input-email",  "");
-            if (wazzSavePasswd) localStorage.setItem("wazz-input-passwd", "");
+            localStorage.setItem("wyzeweb-input-email",  "");
+            if (wyzewebSavePasswd) localStorage.setItem("wyzeweb-input-passwd", "");
         }
-        localStorage.setItem("wazz-remember-signin", check.toString());
+        localStorage.setItem("wyzeweb-remember-signin", check.toString());
     }
 }
 
-function wazzNowMs() {
+function wyzewebNowMs() {
     return moment().valueOf();
 }
 
-function wazzFormatMs(ts) {
+function wyzewebFormatMs(ts) {
     var d = new Date(ts);
     return d.toLocaleString();
 }
 
-function wazzTimeFromMs(ts) {
+function wyzewebTimeFromMs(ts) {
     return moment(ts).fromNow();
 }
 
-function wazzStartOfDayMs(ts) {
+function wyzewebStartOfDayMs(ts) {
     var d = new Date(ts);
     d = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
     return d.getTime();
 }
 
-function wazzJsonRequestPromise(req, reqData) {
+function wyzewebJsonRequestPromise(req, reqData) {
     return new Promise((resolve, reject) => {
         console.log("@@ SV request: " + req);
-        var sv = wazzSV[req];
+        var sv = wyzewebSV[req];
         if (sv == undefined) {
             console.log("@@ invalid SV request: " + req);
             reject({msg: "Invalid SV request " + req});
             return;
         }
 
-        var url = wazzBaseUrl + sv.path;
+        var url = wyzewebBaseUrl + sv.path;
 
         var jsonData = {
-            "access_token": wazzAccessToken,
+            "access_token": wyzewebAccessToken,
             "app_name": "com.hualai",
             "app_ver": "com.hualai___1.5.44",
             "app_version": "1.5.44",
-            "phone_id": wazzGuid,
-            "sc": wazzSC,
+            "phone_id": wyzewebGuid,
+            "sc": wyzewebSC,
             "sv": sv.sv,
-            "ts": wazzNowMs(),
+            "ts": wyzewebNowMs(),
         };
 
         /* Result is always JSON in the form:
@@ -147,10 +147,10 @@ function wazzJsonRequestPromise(req, reqData) {
                 console.log("@@ req: " + req + ", success: " + result.code + ", " + result.msg);
                 // alert("result: " + result.code + " " + result.msg + " " + JSON.stringify(result.data));
                 if (result.code >= 1000) {
-                    wazzFailures += 1;
+                    wyzewebFailures += 1;
                     reject(result);
                 } else {
-                    wazzFailures = 0;
+                    wyzewebFailures = 0;
                     resolve(result.data);
                 }
             },
@@ -162,34 +162,34 @@ function wazzJsonRequestPromise(req, reqData) {
     }); // end promise
 }
 
-function wazzSignIn() {
-    console.log("@@ wazzSignIn");
+function wyzewebSignIn() {
+    console.log("@@ wyzewebSignIn");
 
-    var email = $("#wazz-input-email").val().trim();
-    var passwd = $("#wazz-input-passwd").val().trim();
+    var email = $("#wyzeweb-input-email").val().trim();
+    var passwd = $("#wyzeweb-input-passwd").val().trim();
 
     if (email == "" || passwd == "") {
         alert("Please fill both email and password.");
         return;
     }
 
-    wazzSaveLogin();
+    wyzewebSaveLogin();
 
-    wazzUserEmail = email;
-    wazzUserPasswd = md5(md5(passwd));
+    wyzewebUserEmail = email;
+    wyzewebUserPasswd = md5(md5(passwd));
 
-    wazzSetAppInfoPromise()
-    .then(data => wazzUserLoginPromise())
-    .then(data => wazzUseAppPromise())
-    .then(data => wazzGetDeviceListPromise())
-    .then(data => wazzGetAlarmInfoListPromise())
+    wyzewebSetAppInfoPromise()
+    .then(data => wyzewebUserLoginPromise())
+    .then(data => wyzewebUseAppPromise())
+    .then(data => wyzewebGetDeviceListPromise())
+    .then(data => wyzewebGetAlarmInfoListPromise())
     .catch(error => {
         console.log("@@ login KO: " + JSON.stringify(error));
     });
 }
 
-function wazzSetAppInfoPromise() {
-    return wazzJsonRequestPromise(
+function wyzewebSetAppInfoPromise() {
+    return wyzewebJsonRequestPromise(
         "set_app_info",
         {
             "android_push_type": 2,
@@ -206,48 +206,48 @@ function wazzSetAppInfoPromise() {
     );    
 }
 
-function wazzUserLoginPromise() {
-    return wazzJsonRequestPromise(
+function wyzewebUserLoginPromise() {
+    return wyzewebJsonRequestPromise(
         "login",
         {
-            "password": wazzUserPasswd,
-            "user_name": wazzUserEmail,        
+            "password": wyzewebUserPasswd,
+            "user_name": wyzewebUserEmail,        
         }
     ).then(loginData => {
-        wazzAccessToken = loginData.access_token;
-        wazzRefreshToken = loginData.refresh_token;
+        wyzewebAccessToken = loginData.access_token;
+        wyzewebRefreshToken = loginData.refresh_token;
     });
 }
 
-function wazzRefreshTokenPromise() {
-    return wazzJsonRequestPromise(
+function wyzewebRefreshTokenPromise() {
+    return wyzewebJsonRequestPromise(
         "refresh_token",
         {
-            "access_token": wazzAccessToken,
-            "refresh_token": wazzRefreshToken,
+            "access_token": wyzewebAccessToken,
+            "refresh_token": wyzewebRefreshToken,
         }
     ).then(data => {
-        wazzAccessToken = data.access_token;
-        wazzRefreshToken = data.refresh_token;
+        wyzewebAccessToken = data.access_token;
+        wyzewebRefreshToken = data.refresh_token;
     });
 }
 
-function wazzUseAppPromise() {
-    return wazzJsonRequestPromise("use_app");
+function wyzewebUseAppPromise() {
+    return wyzewebJsonRequestPromise("use_app");
 }
 
-function wazzGetDeviceListPromise() {
-    return wazzJsonRequestPromise("get_device_list")
+function wyzewebGetDeviceListPromise() {
+    return wyzewebJsonRequestPromise("get_device_list")
     .then(deviceData => {
-        wazzDevices = deviceData.device_info_list;
-        wazzDeviceSort = deviceData.device_sort_list;
+        wyzewebDevices = deviceData.device_info_list;
+        wyzewebDeviceSort = deviceData.device_sort_list;
         displayDevices();
     });
 }
 
-function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, nums) {
+function wyzewebGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, nums) {
     if (end_time_ms == undefined || end_time_ms == 0) {
-        end_time_ms = wazzNowMs();
+        end_time_ms = wyzewebNowMs();
     }
     if (begin_time_ms == undefined || begin_time_ms >= end_time_ms) {
         begin_time_ms = end_time_ms - 24*3600*1000;
@@ -258,10 +258,10 @@ function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, num
     if (nums == undefined) {
         nums = 20;
     }
-    console.log("@@ alarm list: begin= " + wazzFormatMs(begin_time_ms) + ", end=" + wazzFormatMs(end_time_ms));
-    wazzEndTs = end_time_ms;
-    wazzBeginTs = begin_time_ms;
-    return wazzJsonRequestPromise(
+    console.log("@@ alarm list: begin= " + wyzewebFormatMs(begin_time_ms) + ", end=" + wyzewebFormatMs(end_time_ms));
+    wyzewebEndTs = end_time_ms;
+    wyzewebBeginTs = begin_time_ms;
+    return wyzewebJsonRequestPromise(
         "get_alarm_info_list",
         {
             "begin_time": begin_time_ms,
@@ -271,13 +271,13 @@ function wazzGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, num
             "order_by": 2,        
         }
     ).then(alarmData => {
-        wazzAlarms = alarmData.alarm_info_list;
+        wyzewebAlarms = alarmData.alarm_info_list;
         displayAlarms();
     });
 }
 
-function wazzUploadDeviceConnectInfoPromise(connect_result, connect_ts, device_mac) {
-    return wazzJsonRequestPromise(
+function wyzewebUploadDeviceConnectInfoPromise(connect_result, connect_ts, device_mac) {
+    return wyzewebJsonRequestPromise(
         "upload_device_connect_info",
         {
             "connect_result": connect_result,
@@ -286,23 +286,23 @@ function wazzUploadDeviceConnectInfoPromise(connect_result, connect_ts, device_m
         });
 }
 
-function wazzLookupCamName(device_mac) {
-    var len = wazzDevices.length;
+function wyzewebLookupCamName(device_mac) {
+    var len = wyzewebDevices.length;
     for (var i = 0; i < len; i++) {
-        if (wazzDevices[i].mac == device_mac) {
-            return wazzDevices[i].nickname;
+        if (wyzewebDevices[i].mac == device_mac) {
+            return wyzewebDevices[i].nickname;
         }
     }
     return device_mac;
 }
 
-function wazzUpdateAlarmsAsync(end_time_ms) {
-    return wazzGetAlarmInfoListPromise(undefined, end_time_ms)
+function wyzewebUpdateAlarmsAsync(end_time_ms) {
+    return wyzewebGetAlarmInfoListPromise(undefined, end_time_ms)
     .catch(error => {
         console.log("@@ login KO: " + JSON.stringify(error));
-        if (error.code == 2001 && wazzFailures < 5) {
-            return wazzRefreshTokenPromise()
-            .then(data => wazzUpdateAlarmsAsync(end_time_ms))
+        if (error.code == 2001 && wyzewebFailures < 5) {
+            return wyzewebRefreshTokenPromise()
+            .then(data => wyzewebUpdateAlarmsAsync(end_time_ms))
             .catch(error => console.log("@@ login KO: " + JSON.stringify(error)));
         }
     });
@@ -311,14 +311,14 @@ function wazzUpdateAlarmsAsync(end_time_ms) {
 // ---
 
 function displayDevices() {
-    var len = wazzDevices.length;
-    $("#wazz-num-devices").html(len + " cameras available.");
+    var len = wyzewebDevices.length;
+    $("#wyzeweb-num-devices").html(len + " cameras available.");
 
-    var body = $("#wazz-devices-body");
+    var body = $("#wyzeweb-devices-body");
     body.empty();
 
     for (var i = 0; i < len; i++) {
-        var entry = wazzDevices[i];
+        var entry = wyzewebDevices[i];
 
         var img = $("<img>").attr("src", entry.product_model_logo_url);
 
@@ -327,27 +327,27 @@ function displayDevices() {
         var info = $("<span>").append(name).append( $("<br>") ).append( $("<span>").append(model) );
 
         var tr = $("<tr>");
-        tr.append( $("<td>").attr("class", "wazz-devices-td-logo").append(img) );
-        tr.append( $("<td>").attr("class", "wazz-devices-td-info").append(info) );
+        tr.append( $("<td>").attr("class", "wyzeweb-devices-td-logo").append(img) );
+        tr.append( $("<td>").attr("class", "wyzeweb-devices-td-info").append(info) );
         body.append(tr);
     }
 }
 
 function displayAlarms() {
-    var len = wazzAlarms.length;
-    $("#wazz-num-alarms").html(len + " alarms available.");
+    var len = wyzewebAlarms.length;
+    $("#wyzeweb-num-alarms").html(len + " alarms available.");
 
-    var body = $("#wazz-alarms-body");
+    var body = $("#wyzeweb-alarms-body");
     body.empty();
 
     for (var i = 0; i < len; i++) {
-        var entry = wazzAlarms[i];
+        var entry = wyzewebAlarms[i];
         let preview_link = entry.alarm_pic_url;
         let video_link = entry.alarm_video_url;
-        let name = wazzLookupCamName(entry.device_mac);
-        let timeTs = wazzFormatMs(entry.alarm_ts);
-        var timeFromNow = wazzTimeFromMs(entry.alarm_ts);
-        wazzBeginTs = entry.alarm_ts;
+        let name = wyzewebLookupCamName(entry.device_mac);
+        let timeTs = wyzewebFormatMs(entry.alarm_ts);
+        var timeFromNow = wyzewebTimeFromMs(entry.alarm_ts);
+        wyzewebBeginTs = entry.alarm_ts;
 
         var info = $("<span>")
             .append(name).append($("<br>"))
@@ -374,33 +374,33 @@ function displayAlarms() {
         info = info.append($("<br>")).append(dl).append($("<br>")).append(full);
 
         var tr = $("<tr>");
-        tr.append( $("<td>").attr("class", "wazz-alarms-td-info").append(info) );
-        tr.append( $("<td>").attr("class", "wazz-alarms-td-view").append(video) );
+        tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-info").append(info) );
+        tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-view").append(video) );
         body.append(tr);
     }
 
-    let previous_end_ts = wazzBeginTs;
-    let previous_day_ts = wazzStartOfDayMs(wazzBeginTs);
+    let previous_end_ts = wyzewebBeginTs;
+    let previous_day_ts = wyzewebStartOfDayMs(wyzewebBeginTs);
     
     var link_more = $("<a>")
         .attr("href", "#")
         .attr("title", "Load <b>previous</b> alarm videos")
-        .click(e => wazzUpdateAlarmsAsync(previous_end_ts - 1))
+        .click(e => wyzewebUpdateAlarmsAsync(previous_end_ts - 1))
         .append("Load <b>previous</b> alarm videos");
-    var link_more_text = " (before " + wazzFormatMs(previous_end_ts) + ")";
+    var link_more_text = " (before " + wyzewebFormatMs(previous_end_ts) + ")";
     var link_prev_day = $("<a>")
         .attr("href", "#")
         .attr("title", "Load previous alarm videos")
-        .click(e => wazzUpdateAlarmsAsync(previous_day_ts - 1))
+        .click(e => wyzewebUpdateAlarmsAsync(previous_day_ts - 1))
         .append("Load <b>previous day</b> alarm videos");
     var link_refresh = $("<a>")
         .attr("href", "#")
         .attr("title", "Load latest alarm videos")
-        .click(e => wazzUpdateAlarmsAsync(0))
+        .click(e => wyzewebUpdateAlarmsAsync(0))
         .append("Load <b>latest</b> alarm videos");
     var tr = $("<tr>");
-    tr.append( $("<td>").attr("class", "wazz-alarms-td-info").append("&nbsp;") );
-    tr.append( $("<td>").attr("class", "wazz-alarms-td-view")
+    tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-info").append("&nbsp;") );
+    tr.append( $("<td>").attr("class", "wyzeweb-alarms-td-view")
                         .append(link_more).append(link_more_text)
                         .append("<br>")
                         .append(link_prev_day)
@@ -411,11 +411,11 @@ function displayAlarms() {
 
 function displayFullscreen(info, video_link) {
     console.log("@@ Playing full screen [" + info + "]: " + video_link);
-    var m = $("#wazz-fs-modal");
+    var m = $("#wyzeweb-fs-modal");
     m.modal("show");
     stopAllVideos();
-    $("#wazz-fs-info").html(info);
-    $("#wazz-fs-video").attr("src", video_link);
+    $("#wyzeweb-fs-info").html(info);
+    $("#wyzeweb-fs-video").attr("src", video_link);
     m.on("hidden.bs.modal", e => stopAllVideos());
 }
 
@@ -426,4 +426,4 @@ function stopAllVideos() {
 
 // ---
 
-$(document).ready(wazzInit);
+$(document).ready(wyzewebInit);

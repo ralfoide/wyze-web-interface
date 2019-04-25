@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- 
-    WazzApp, (c) 2018 Ralfoide.
+    Wyze Web Interface, (c) 2018 Ralfoide.
     A demonstration Wyze web client interface.
 
     This work is licensed under the terms of the MIT license.  
@@ -11,73 +11,73 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Wazz App">
+    <meta name="description" content="Wyze Web Interface">
     <meta name="author" content="Ralfoide">
     <!-- link rel="icon" href="../../favicon.ico" -->
 
-    <title>Wazz App</title>
+    <title>Wyze Web Interface</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
     <!-- Custom styles for this template -->
-    <link href="wazz.css" rel="stylesheet">
+    <link href="wyzeweb.css" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="container">
-<div class="wazz-header">
-    <h3>WazzApp</h3>
-    <a href="https://bitbucket.org/ralfoide/wazzapp/overview">Source &amp; Information</a>, MIT License
+<div class="wyzeweb-header">
+    <h3>Wyze Web Interface</h3>
+    <a href="https://bitbucket.org/ralfoide/wyzewebapp/overview">Source &amp; Information</a>, MIT License
 </div>
 <div class="row ">
 <div class="col-md-8">
     <h3>Device List</h3>
-    <span id="wazz-num-devices">No Wyze devices loaded yet.</span>
+    <span id="wyzeweb-num-devices">No Wyze devices loaded yet.</span>
     <table class="table table-striped table-bordered">
         <thead>
         <tr>
-            <th id="wazz-devices-logo"></th>
-            <th id="wazz-devices-info">Name / Model</th>
+            <th id="wyzeweb-devices-logo"></th>
+            <th id="wyzeweb-devices-info">Name / Model</th>
         </tr>
         </thead>
-        <tbody id="wazz-devices-body">
+        <tbody id="wyzeweb-devices-body">
         <!-- tr/td data -->
         </tbody>
     </table>
 </div>
-<div class="col-md-4 wazz-signin-group">
+<div class="col-md-4 wyzeweb-signin-group">
     <h3>Please sign in</h3>
     <span>Wyze Username / email:</span>
     <label for="inputEmail" class="sr-only">Email address</label>
-        <input type="email" id="wazz-input-email" class="form-control" placeholder="Email address" required autofocus>
+        <input type="email" id="wyzeweb-input-email" class="form-control" placeholder="Email address" required autofocus>
     <span>Wyze Password:</span>
     <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="wazz-input-passwd" class="form-control" placeholder="Password" required>
+        <input type="password" id="wyzeweb-input-passwd" class="form-control" placeholder="Password" required>
     <div class="checkbox">
         <label>
-            <input type="checkbox" id="wazz-remember-signin">Remember username
+            <input type="checkbox" id="wyzeweb-remember-signin">Remember username
         </label>
     </div>
-    <button class="btn btn-lg btn-primary btn-block" id="wazz-btn-signin">Sign in &amp; Refresh</button>
+    <button class="btn btn-lg btn-primary btn-block" id="wyzeweb-btn-signin">Sign in &amp; Refresh</button>
 </div>
 </div> <!-- row cams + signin -->
 
 <div class="row ">
     <div class="col-md-12">
         <h3>Recent Alarms</h3>
-        <span id="wazz-num-alarms">No alarms loaded yet.</span>
+        <span id="wyzeweb-num-alarms">No alarms loaded yet.</span>
 
         <table class="table table-striped table-bordered">
             <thead>
             <tr>
-                <th id="wazz-alarm-info">Alarm</th>
-                <th id="wazz-alarm-view">View</th>
+                <th id="wyzeweb-alarm-info">Alarm</th>
+                <th id="wyzeweb-alarm-view">View</th>
             </tr>
             </thead>
-            <tbody id="wazz-alarms-body">
+            <tbody id="wyzeweb-alarms-body">
             <!-- tr/td data -->
             </tbody>
         </table>
@@ -86,7 +86,7 @@
     
 </div> <!-- container -->
 
-<div class="modal fade" tabindex="-1" role="dialog" id="wazz-fs-modal">
+<div class="modal fade" tabindex="-1" role="dialog" id="wyzeweb-fs-modal">
     <div class="modal-dialog modal-full" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -94,8 +94,8 @@
           <h4 class="modal-title">Alarm Video</h4>
         </div>
         <div class="modal-body">
-          <p id="wazz-fs-info">Information&hellip;</p>
-          <video id="wazz-fs-video" controls>
+          <p id="wyzeweb-fs-info">Information&hellip;</p>
+          <video id="wyzeweb-fs-video" controls>
             Sorry, your browser doesn't support playing embedded videos. Try Chrome or Firefox instead.
           </video>
         </div>
@@ -113,7 +113,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.10.0/js/md5.min.js" integrity="sha256-J9IhvkIJb0diRVJOyu+Ndtg41RibFkF8eaA60jdjtB8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js" integrity="sha256-h7PiJxtxsf7+VkAGN6N+8/0qZrhK7oYJc/pguDnYJi4=" crossorigin="anonymous"></script>
 
-<script src="wazz.js"></script>
+<script src="wyzeweb.js"></script>
 
 </body>
 </html>
