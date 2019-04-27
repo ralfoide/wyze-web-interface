@@ -2,6 +2,8 @@
     Wyze Web Interface, (c) 2018 Ralfoide.
     A demonstration Wyze web client interface.
 
+    See README.md for details.
+
     This work is licensed under the terms of the MIT license.  
     For a copy, see LICENSE.txt or <https://opensource.org/licenses/MIT>.
 */
@@ -11,7 +13,6 @@ body {
     padding-top: 80px; /* navbar min-height is fixed by content, 50 px min. */
 }
 
-/* override stuff from bootstrap */
 .container {
     width: 100%;
 }

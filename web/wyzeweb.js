@@ -2,6 +2,8 @@
     Wyze Web Interface, (c) 2018 Ralfoide.
     A demonstration Wyze web client interface.
 
+    See README.md for details.
+
     This work is licensed under the terms of the MIT license.  
     For a copy, see LICENSE.txt or <https://opensource.org/licenses/MIT>.
 */
@@ -12,7 +14,7 @@ var wyzewebAccessToken = "";
 var wyzewebRefreshToken = "";
 var wyzewebUserEmail = "";
 var wyzewebUserPasswd = "";
-var wyzewebSavePasswd = false; // do not enable. Let browsers save password if feature is wanted.
+var wyzewebSavePasswd = false; // Do not enable. Let browsers save password if feature is wanted.
 var wyzewebDevices = [];
 var wyzewebDeviceSort = [];
 var wyzewebAlarms = [];
@@ -160,8 +162,8 @@ function wyzewebJsonRequestPromise(req, reqData) {
                 console.log("@@ req: " + req + ", error: " + status.code + ", " + status.msg + ", " + error);
                 reject(status);
             }
-        }); // end ajax
-    }); // end promise
+        });
+    });
 }
 
 function wyzewebSignIn() {

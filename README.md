@@ -23,6 +23,12 @@ This is a little _demonstration_ web client that displays the most recent alarm 
 
 _The Wyze API is not official_. It can change at any moment, for example due to Wyze servers updates or hardware/firmware updates.
 
+As indicated above, this web client is merely a _demonstration_, a _proof of concept_.
+As such, it does not try to be feature complete and does not attempt to replicate all the functionality of the mobile Wyze application.
+My minimal requirements were to grab the device list and the recent video alarms, to be played in the browser.
+This web client does just that, and no more.
+The source is minimal and does not rely on any specific framework, to make it easier to be reused.
+
 The following features are not supported nor implemented:
 
 * Account management: user registration, change name, change password.
@@ -33,14 +39,14 @@ The following features are not supported nor implemented:
 * Live view from cameras.
 
 >**Note**: The first few features are trivial to support.
-The last one, live view, would be harder due to the lack of native RTP/RTSP support in web browsers.
+The last one, live view, would require some RTP/RTSP support in web browsers.
 
 Browser requirements:
 
 * EcmaScript 6 features.
 * `<video>` mp4 support.
 
-Any recent version of Chrome or Firefox should work just fine.
+Any recent version of Chrome or Firefox should work just fine. IE11 and Safari are not supported.
 
 
 ## Screenshot
