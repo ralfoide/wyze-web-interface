@@ -1,5 +1,7 @@
 # Wyze Web Interface
 
+**How to access the Wyze cam through web browser?**
+
 **Wyze Web Interface is an unofficial _Wyze Camera_ web client interface**.
 
 This is a little _demonstration_ web client that displays the most recent alarm videos of Wyze cameras.
