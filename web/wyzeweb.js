@@ -24,7 +24,14 @@ var wyzewebLastViewTs = []
 var wyzewebGuid = "";
 var wyzewebFailures = 0;
 const wyzewebOneDayMs = 24*3600*1000;
-const wyzewebBaseUrl = "https://api.wyzecam.com:8443/";
+const wyzewebAppVer = "2.16.55"
+const wyzewebPhoneSystemType = "2"
+const wyzewebAlarmTypes = { 1: "Motion", 2: "Sound", 13: "Cam+ Video" }
+const wyzewebBaseApiUrl = "https://api.wyzecam.com:8443/";
+// Important: the ams-api server does NOT reply with a proper CORS header and ajax requests
+// will fail under normal browser usage. For *dev* purposes only, bypassing CORS is needed.
+const wyzewebAmsApiUrl = "https://ams-api.wyzecam.com:443/";
+// API endpoints & tokens
 const wyzewebSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
 const wyzewebSV = {
     "set_app_info" :               { path: "app/system/set_app_info",               sv: "664331bda40b47349498e57df18d1e80" },
@@ -35,8 +42,10 @@ const wyzewebSV = {
     "get_app_config_list" :        { path: "app/system/get_app_config_list",        sv: "bc5ec86775114e4fa2820b73cd1cc708" },
     "get_provider_list" :          { path: "app/v2/auto/get_provider_list",         sv: "e3fb1d84a20840119d63f83989c2434a" },
     "get_auto_list" :              { path: "app/v2/auto/get_auto_list",             sv: "367afccc32b1431c9f583d94394079a2" },
+    "get_event_list" :             { path: "app/v2/device/get_event_list",          sv: "bdcb412e230049c0be0916e75022d3f3" },
     "get_alarm_info_list" :        { path: "app/device/get_alarm_info_list",        sv: "49411c69553a49b6b3f3dfda9709f7ae" },
     "upload_device_connect_info" : { path: "app/device/upload_device_connect_info", sv: "22dd7b8b2335467db1c588e760c7c3d5" },
+    "get_replay_url" :             { path: "api/v1/kinesis/replay_url/get",         sv: "668988518a6a47fc9c0ef75b0164cfd6" },
 };
 
 
@@ -109,13 +118,14 @@ function wyzewebJsonRequestPromise(req, reqData) {
             return;
         }
 
-        var url = wyzewebBaseUrl + sv.path;
+        var url = (sv.path.startsWith("app") ? wyzewebBaseApiUrl : wyzewebAmsApiUrl) + sv.path;
 
         var jsonData = {
             "access_token": wyzewebAccessToken,
             "app_name": "com.hualai",
-            "app_ver": "com.hualai___1.5.44",
-            "app_version": "1.5.44",
+            "app_ver": "com.hualai___" + wyzewebAppVer,
+            "app_version": wyzewebAppVer,
+            "phone_system_type": wyzewebPhoneSystemType,
             "phone_id": wyzewebGuid,
             "sc": wyzewebSC,
             "sv": sv.sv,
@@ -186,7 +196,10 @@ function wyzewebSignIn() {
     .then(data => wyzewebUserLoginPromise())
     .then(data => wyzewebUseAppPromise())
     .then(data => wyzewebGetDeviceListPromise())
-    .then(data => wyzewebGetAlarmInfoListPromise())
+    // Without Cam+: alarm_info_list is enough to get the 12-second video list.
+    // With    Cam+: event_list is needed to get the Cam+ longer type 13 video events.
+    // [legacy] .then(data => wyzewebGetAlarmInfoListPromise())
+    .then(data => wyzewebGetEventListPromise())
     .catch(error => {
         console.log("@@ login KO: " + JSON.stringify(error));
     });
@@ -280,6 +293,35 @@ function wyzewebGetAlarmInfoListPromise(begin_time_ms, end_time_ms, device_mac, 
     });
 }
 
+function wyzewebGetEventListPromise(begin_time_ms, end_time_ms) {
+    if (end_time_ms == undefined || end_time_ms == 0) {
+        end_time_ms = wyzewebNowMs();
+    }
+    if (begin_time_ms == undefined || begin_time_ms >= end_time_ms) {
+        begin_time_ms = end_time_ms - 24*3600*1000;
+    }
+    const nums = 20;
+    console.log("@@ event list: begin= " + wyzewebFormatMs(begin_time_ms) + ", end=" + wyzewebFormatMs(end_time_ms));
+    wyzewebEndTs = end_time_ms;
+    wyzewebBeginTs = begin_time_ms;
+    return wyzewebJsonRequestPromise(
+        "get_event_list",
+        {
+            "begin_time": begin_time_ms,
+            "end_time": end_time_ms,
+            "count": nums,
+            "order_by": 2,
+            "device_mac_list": [],
+            "event_tag_list": [],
+            "event_value_list": [],
+            "event_type": "1",        
+        }
+    ).then(alarmData => {
+        wyzewebAlarms = alarmData.event_list;
+        displayAlarms();
+    });
+}
+
 function wyzewebUploadDeviceConnectInfoPromise(connect_result, connect_ts, device_mac) {
     return wyzewebJsonRequestPromise(
         "upload_device_connect_info",
@@ -300,6 +342,17 @@ function wyzewebLookupCamName(device_mac) {
     return device_mac;
 }
 
+function wyzewebLookupDeviceModel(device_mac) {
+    var len = wyzewebDevices.length;
+    for (var i = 0; i < len; i++) {
+        var entry = wyzewebDevices[i];
+        if (entry.mac === device_mac) {
+            return entry.product_model
+        }
+    }
+    return "WYZEC1-JZ"
+}
+
 function wyzewebUpdateAlarmsAsync(end_time_ms) {
     return wyzewebGetAlarmInfoListPromise(undefined, end_time_ms)
     .catch(error => {
@@ -310,6 +363,20 @@ function wyzewebUpdateAlarmsAsync(end_time_ms) {
             .catch(error => console.log("@@ login KO: " + JSON.stringify(error)));
         }
     });
+}
+
+function wyzewebGetReplayUrlAsync(begin_time_ms, end_time_ms, device_mac, video_id) {
+    return wyzewebJsonRequestPromise(
+        "get_replay_url",
+        {
+            "begin_time": Math.trunc(begin_time_ms / 1000),
+            "end_time"  : Math.trunc(end_time_ms / 1000),
+            "max_manifest_fragment": 1000,
+            "expires": 4000,
+            "device_mac": device_mac,
+            "device_model": wyzewebLookupDeviceModel(device_mac),
+        })
+    .then(replayUrlData => playDashUrl(video_id, replayUrlData.play_url));
 }
 
 // ---
@@ -346,31 +413,81 @@ function displayAlarms() {
 
     for (var i = 0; i < len; i++) {
         var entry = wyzewebAlarms[i];
-        let preview_link = entry.alarm_pic_url;
-        let video_link = entry.alarm_video_url;
         let name = wyzewebLookupCamName(entry.device_mac);
-        let timeTs = wyzewebFormatMs(entry.alarm_ts);
-        var timeFromNow = wyzewebTimeFromMs(entry.alarm_ts);
-        wyzewebBeginTs = entry.alarm_ts;
+        let alarmType = ("event_value" in entry)
+            ? (wyzewebAlarmTypes[entry.event_value] || entry.event_value)
+            : (wyzewebAlarmTypes[entry.alarm_type] || entry.alarm_type);
 
-        var info = $("<span>")
+        // get_alarm_info_list ==> alarm_pic_url+alarm_video_url vs get_event_list ==> file_list
+        let preview_link = entry.alarm_pic_url
+        let video_link = entry.alarm_video_url
+        if ("file_list" in entry) {
+            for (var j = 0; j < entry.file_list.length; j++) {
+                let f = entry.file_list[j]
+                if (("type" in f) && ("url" in f)) {
+                    if (f.type == 1) {
+                        preview_link = f.url
+                    } else if (f.type == 2) {
+                        video_link = f.url
+                    }
+                }
+            }
+        }
+
+        // get_alarm_info_list ==> alarm_ts vs get_event_list ==> event_ts
+        let alarm_ts = entry.alarm_ts || entry.event_ts
+        let timeTs = wyzewebFormatMs(alarm_ts)
+        let timeFromNow = wyzewebTimeFromMs(alarm_ts)
+        wyzewebBeginTs = alarm_ts;
+
+        let videoLenMs = 0
+        let usingDash = false
+        if ("event_params" in entry) {
+            let beginTime = entry.event_params.beginTime || 0
+            let endTime = entry.event_params.endTime || 0
+            if (endTime > 0 && endTime > beginTime) {
+                videoLenMs = endTime - beginTime
+            }
+            usingDash = videoLenMs > 0
+        }
+
+        let info = $("<span>")
             .append(name).append($("<br>"))
             .append( $("<span>").append(timeFromNow) ).append($("<br>"))
-            .append( $("<span>").append(timeTs) );
+            .append( $("<span>").append(timeTs) ).append($("<br>"))
+            .append( $("<span>").append("Trigger: " + alarmType) );
 
-        var video = $("<video>")
+        let video_id = "vid_" + wyzewebBeginTs
+        let video = $("<video>")
+            .attr("id", video_id)
             .attr("width", "75%")
             .attr("controls", "")
+            .attr("preload", "none")
+            .attr("poster", preview_link)
             .attr("src", video_link)
             .append("Sorry, your browser doesn't support embedded videos.");
         // Note: instead of src attr, can use a source sub element:
         // video.append( $("<source>").attr("src", video_link).attr("type", "video/mp4") );
 
-        var dl = $("<a>")
+        let dl;
+        if (video_link) {
+            dl = $("<a>")
             .attr("href", video_link)
             .attr("title", "Click to download")
             .append("Download");
-        var full = $("<a>")
+        } else if (usingDash) {
+            dl = $("<span>").append("Video " + (videoLenMs / 1000) + "s ")
+            .append(
+                $("<a>").attr("href", "#")
+                // Reminder: all vars in a closure must be defined using "let" instead of "var"
+                .click(e => { wyzewebGetReplayUrlAsync(alarm_ts, alarm_ts+videoLenMs, entry.device_mac, video_id); return false; })
+                .append("load")
+            );
+            video.click(e => { wyzewebGetReplayUrlAsync(alarm_ts, alarm_ts+videoLenMs, entry.device_mac, video_id); return false; })
+        } else if (videoLenMs <= 0) {
+            dl = $("<span>").append("Video not available");
+        }
+        let full = $("<a>")
             .attr("href", "#")
             .attr("title", "Play fullscreen")
             .click(e => displayFullscreen(name + " " + timeTs, video_link))
@@ -472,6 +589,18 @@ function displayAlarms() {
         .append(btn_next_day)
         .append(btn_prev2)
         .append(btn_next2);
+}
+
+function playDashUrl(video_id, play_url) {
+    console.log("@@ Play DASH video [" + video_id + "] to URL: " + play_url)
+
+    // Remove click handler on video tag
+    var v = $("#" + video_id)
+    v.unbind("click")
+
+    // Play dash on first click
+    var player = dashjs.MediaPlayer().create();
+    player.initialize(document.querySelector("#" + video_id), play_url, true);
 }
 
 function displayFullscreen(info, video_link) {
