@@ -31,8 +31,12 @@ const wyzewebBaseApiUrl = "https://api.wyzecam.com:8443/";
 // Important: the ams-api server does NOT reply with a proper CORS header and ajax requests
 // will fail under normal browser usage. For *dev* purposes only, bypassing CORS is needed.
 const wyzewebAmsApiUrl = "https://ams-api.wyzecam.com:443/";
+const wyzewebAuthApiUrl = "https://auth-prod.api.wyze.com/";
 // API endpoints & tokens
+const wyzewebAppId = "9319141212m2ik";
 const wyzewebSC = "a9ecb0f8ea7b4da2b6ab56542403d769";
+const wyzewebAuthApiKey = "RckMFKbsds5p6QY3COEXc2ABwNTYY0q18ziEiSEm";
+const wyzewebAuthSecKey = "wyze_app_secret_key_132";
 const wyzewebSV = {
     "set_app_info" :               { path: "app/system/set_app_info",               sv: "664331bda40b47349498e57df18d1e80" },
     "login" :                      { path: "app/user/login",                        sv: "da29dd58efe4407a90aa69ced5134e0b" },
@@ -176,6 +180,69 @@ function wyzewebJsonRequestPromise(req, reqData) {
     });
 }
 
+function wyzewebAuthRequestPromise(path, jsonData) {
+    return new Promise((resolve, reject) => {
+        console.log("@@ Auth request");
+
+        var url = wyzewebAuthApiUrl + path;
+
+        var headers = {
+            "x-api-key": wyzewebAuthApiKey,
+            "appinfo": "wyze_android_" + wyzewebAppVer,
+            "user-agent": "wyze_android_" + wyzewebAppVer,
+            "access_token": "",
+            "phone-id": wyzewebGuid,
+            "phoneid": wyzewebGuid,
+            "requestid": md5(md5(jsonData.nonce)),
+            "appid": wyzewebAppId,
+            "signature": wyzewebAuthSignature(jsonData),
+            "phone-id": "",
+        };
+        
+        // [DEBUG] 
+        console.log("@@ req: " + url + " " + JSON.stringify(jsonData));
+
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: JSON.stringify(jsonData),
+            dataType: "json",
+            contentType: "application/json",
+            headers: headers,
+            success: (result, status, xhr) => {
+                // [DEBUG] 
+                console.log("@@ Auth success: " + JSON.stringify(result) );
+                // console.log("@@ req: " + req + ", success: " + result.code + ", " + result.msg);
+                // [DEBUG] alert("result: " + result.code + " " + result.msg + " " + JSON.stringify(result.data));
+                if ("access_token" in result) {
+                    wyzewebFailures = 0;
+                    resolve(result);
+                } else {
+                    reject(result);
+                }
+            },
+            error: (xhr, status, error) => {
+                // [DEBUG] 
+                wyzewebFailures += 1;
+                console.log("@@ Auth ERROR: " + JSON.stringify(status)  + JSON.stringify(error) );
+                console.log("@@ req: " + req + ", error: " + status.code + ", " + status.msg + ", " + error);
+                reject(status);
+            }
+        });
+    });
+}
+
+function wyzewebAuthSignature(jsonBody) {
+    var format_req = Object
+        .keys(jsonBody)
+        .sort()
+        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(jsonBody[k])}`)
+        .join("&");
+    var enc_secret = encodeURIComponent(wyzewebAuthSecKey);
+    var req_hash = CryptoJS.HmacMD5(format_req, enc_secret);
+    return `${req_hash}`;
+}
+
 function wyzewebSignIn() {
     console.log("@@ wyzewebSignIn");
 
@@ -193,7 +260,7 @@ function wyzewebSignIn() {
     wyzewebUserPasswd = md5(md5(passwd));
 
     wyzewebSetAppInfoPromise()
-    .then(data => wyzewebUserLoginPromise())
+    .then(data => wyzewebAuthPromise())
     .then(data => wyzewebUseAppPromise())
     .then(data => wyzewebGetDeviceListPromise())
     // Without Cam+: alarm_info_list is enough to get the 12-second video list.
@@ -223,6 +290,23 @@ function wyzewebSetAppInfoPromise() {
     );    
 }
 
+// New Auth API
+function wyzewebAuthPromise() {
+    return wyzewebAuthRequestPromise(
+        "user/login",
+        {
+            "password": md5(wyzewebUserPasswd),
+            "email": wyzewebUserEmail,
+            "nonce": wyzewebNowMs(),
+        }
+    ).then(loginData => {
+        wyzewebAccessToken = loginData.access_token;
+        wyzewebRefreshToken = loginData.refresh_token;
+        // loginData.user_id -- not used
+    });
+}
+
+// Deprecated API
 function wyzewebUserLoginPromise() {
     return wyzewebJsonRequestPromise(
         "login",
