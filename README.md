@@ -11,8 +11,8 @@ This is a little _demonstration_ web client that displays the most recent alarm 
 
 ## Usage
 
-1. Clone directory or copy the content of the [`web`](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/web/) folder locally.
-2. Use your web browser to navigate to your local copy of [`web/wyzeweb.html`](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/web/wyzeweb.html). Using a `file://` reference works. No web server is required.
+1. Clone directory or copy the content of the [`web`](https://github.com/ralfoide/wyze-web-interface/src/HEAD/web/) folder locally.
+2. Use your web browser to navigate to your local copy of [`web/wyzeweb.html`](https://github.com/ralfoide/wyze-web-interface/src/HEAD/web/wyzeweb.html). Using a `file://` reference works. No web server is required.
 3. Enter your Wyze account login information.
 4. Using the Wyze API:
     * The cameras registered with the account are displayed,
@@ -58,6 +58,6 @@ Any recent version of Chrome or Firefox should work just fine. IE11 and Safari a
 
 ## License
 
-MIT license. See [LICENSE.txt](https://bitbucket.org/ralfoide/wyze-web-interface/src/HEAD/LICENSE.txt).
+MIT license. See [LICENSE.txt](https://github.com/ralfoide/wyze-web-interface/src/HEAD/LICENSE.txt).
 
 ~~
